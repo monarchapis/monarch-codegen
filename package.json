@@ -1,0 +1,32 @@
+{
+	"name": "monarch-codegen",
+	"version": "0.0.1",
+	"author": "pkedy",
+	"homepage": "http://monarchapis.com",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/monarchapis/monarch-codegen.git"
+	},
+	"bugs": {
+		"url": "http://github.com/monarchapis/monarch-codegen/issues"
+	},
+	"bin": {
+		"monarch-codegen": "bin/monarch-codegen"
+	},
+	"engines": {
+		"node": ">=0.8.0"
+	},
+	"preferGlobal": true,
+	"dependencies": {
+		"handlebars": "~2.0.0-alpha.4",
+		"jade": "~1.5.0",
+		"hogan": "~1.0.2",
+		"jquery-deferred": "~0.3.0",
+		"node-fs": "~0.1.7",
+		"optimist": "~0.6.1",
+		"request": "~2.34.0",
+		"underscore": "~1.6.0"
+	},
+	"devDependencies": {
+	}
+}

@@ -1,0 +1,31 @@
+package {{package}};
+
+import com.monarchapis.client.resource.AbstractResource;
+import com.monarchapis.client.rest.RequestProcessor;
+import com.monarchapis.client.rest.RESTClientFactory;
+import com.monarchapis.client.rest.RESTClient;
+import com.monarchapis.client.rest.RESTResponse;
+{{#each imports}}import {{{this}}};
+{{/each}}
+public class {{{className}}} extends AbstractResource {
+	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory) {
+		super(baseUrl, clientFactory);
+	}
+
+	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
+		super(baseUrl, clientFactory, requestProcessors);
+	}{{#each methods}}
+	
+	public {{{returnType}}} {{{operation}}}({{#each parameters}}{{#if @index}}, {{/if}}{{{type}}} {{{name}}}{{/each}}) {
+		{{#each parameters}}{{#if required}}require({{{name}}}, "{{{name}}} is a required parameter.");
+		{{/if}}{{/each}}
+		final RESTClient client = newClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
+				.accepts("{{{accepts}}}"){{/if}}{{#if contentType}} //
+				.contentType("{{{contentType}}}"){{/if}}{{#if parameters}} //{{#each parameters}}{{#if @index}} //{{/if}}
+				.{{{clientMethod}}}({{#if named}}"{{{name}}}", {{/if}}{{#if convertMethod}}{{{convertMethod}}}({{/if}}{{{name}}}{{#if convertMethod}}){{/if}}){{/each}}{{/if}};
+
+		signRequest(client);
+		{{#if hasReturn}}final RESTResponse response = client.send();
+		return parseAs(response, {{{parseAs}}});{{else}}client.send();{{/if}}
+	}{{/each}}
+}
