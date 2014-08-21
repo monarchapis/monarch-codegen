@@ -25,7 +25,9 @@
 		"node-fs": "~0.1.7",
 		"optimist": "~0.6.1",
 		"request": "~2.34.0",
-		"underscore": "~1.6.0"
+		"underscore": "~1.6.0",
+		"html-md" : "~3.0.2",
+		"js-yaml" : "~3.1.0"
 	},
 	"devDependencies": {
 	}
