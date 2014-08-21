@@ -58,9 +58,11 @@ fileWriter.clean(generator.preventDeletion);
 var specUrl = argv.swaggerUrl;
 
 // <v2>
-function assign(target, targetProperty, source, sourceProperty) {
+function assign(target, targetProperty, source, sourceProperty, defaultValue) {
 	if (source && source[sourceProperty]) {
-		target[targetProperty] = source[sourceProperty];
+		target[targetProperty] = source[sourceProperty] || defaultValue;
+	} else if (defaultValue) {
+		target[targetProperty] = defaultValue;
 	}
 }
 
@@ -147,12 +149,10 @@ request(specUrl, function (error, response, body) {
 						var path = v2.paths[api.path] = {};
 
 						_.each(api.operations, function(operation) {
-							var method = {
-								summary : operation.summary,
-								description : md(operation.description)
-							};
+							var method = {};
 
-
+							assign(method, 'summary', operation, 'summary');
+							assign(method, 'description', operation, 'notes');
 							assign(method, 'operationId', operation, 'nickname');
 							assign(method, 'produces', operation, 'produces');
 							assign(method, 'consumes', operation, 'consumes');
