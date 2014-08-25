@@ -31,21 +31,17 @@
 <div id="documentation" class="container">
 
 <section id="resources">
-	{{#each apiDeclarations}}
+	{{#each resources}}
 	<div class="resource">
 		<div class="info">
-			{{#if info}}
-			<header class="name">{{info.title}}</header>
-			<p class="description">{{info.description}}</p>
-			{{else}}
-			<header class="name">{{resourcePath}}</header>
-			{{/if}}
+			<header class="name">{{@key}}</header>
+			{{#if description}}<p class="description">{{description}}</p>{{/if}}
 		</div>
 
 		{{#each groups}}
 		<div class="resource-group">
 			<div class="info">
-				<header class="name">{{title}}</header>
+				<header class="name">{{@key}}</header>
 				{{#if description}}<p class="description">{{description}}</p>{{/if}}
 			</div>
 			{{#each operations}}
@@ -57,24 +53,21 @@
 					<div class="url">{{path}}</div>
 				</div>
 				<div class="body">
-					{{#with authorizations.oauth2}}
+					{{#if security}}
 					<section>
 						<ul class="oauth">
 							<li><label>OAuth</label></li>
 							<li>
 								<label class="text-muted">Scope:</label>
-								{{#each scopes}}{{#if @index}}, {{/if}}{{scope}}{{/each}}
+								{{#each security}}{{#if @index}}, {{/if}}{{this}}{{/each}}
 							</li>
 							<li>
 								<label class="text-muted">Flows:</label>
-								{{#each grantTypes}}{{#if @index}}, {{/if}}{{translate @key
-								implicit="Implicit"
-								authorization_code="Authorization Code"
-								password="Password"}}{{/each}}
+								Implicit, Authorization Code, Password
 							</li>
 						</ul>
 					</section>
-					{{/with}}
+					{{/if}}
 
 					{{#if parameters}}
 					<section>
@@ -93,7 +86,7 @@
 									<tr>
 										<td>
 											<div class="parameter"><span class="label label-primary">{{name}}</span>{{#if required}} <small class="glyphicon glyphicon-certificate text-danger"></small>{{/if}}</div>
-											<div><strong>{{#modelLink type}}{{#if format}}{{format}}{{else}}{{type}}{{/if}}{{/modelLink}}</strong> {{paramType}}</div>
+											<div><strong>{{#if schema}}{{#with schema}}{{#modelLink $ref}}{{$ref}}{{/modelLink}}{{/with}}{{else}}{{#modelLink type}}{{#if format}}{{format}}{{else}}{{type}}{{/if}}{{/modelLink}}{{/if}}</strong> {{in}}</div>
 										</td>
 										<td>{{description}}</td>
 									</tr>
@@ -104,7 +97,7 @@
 					</section>
 					{{/if}}
 
-					{{#if body}}
+					{{#if body}}{{#with body}}
 					<section>
 						<p class="label label-primary">Request</p>
 						<div>
@@ -112,13 +105,13 @@
 								{{#if type}}Accept: {{#each ../produces}}{{#if @index}}, {{/if}}{{this}}{{/each}}<br />{{/if}}
 								Content-Type: {{#each ../consumes}}{{#if @index}}, {{/if}}{{this}}{{/each}}<br />
 								<br />
-								Contents of <span class="label label-muted label-large"><a class="model-link" href="#model_{{type}}">{{type}}</a></span>
+								Contents of <span class="label label-muted label-large">{{#if schema}}{{#with schema}}{{#modelLink $ref}}{{$ref}}{{/modelLink}}{{/with}}{{else}}{{#if format}}{{format}}{{else}}{{type}}{{/if}}{{#with items}} of {{#if $ref}}{{#modelLink $ref}}{{$ref}}{{/modelLink}}{{else}}{{type}}{{/if}}{{/with}}{{/if}}</a></span>
 							</code>
 						</div>
 					</section>
-					{{/if}}
+					{{/with}}{{/if}}
 
-					{{#if type}}
+					{{#if response}}{{#with response}}
 					<section>
 						<p class="label label-primary">Response</p>
 						<div>
@@ -126,11 +119,11 @@
 								200 OK<br />
 								Content-Type: {{#each ../produces}}{{#if @index}}, {{/if}}{{this}}{{/each}}<br />
 								<br />
-								Contents of <span class="label label-muted label-large"><a class="model-link" href="#model_{{type}}">{{type}}</a></span>
+								Contents of <span class="label label-muted label-large">{{#if $ref}}{{#modelLink $ref}}{{$ref}}{{/modelLink}}{{else}}{{#if format}}{{format}}{{else}}{{type}}{{/if}}{{#with items}} of {{#if $ref}}{{#modelLink $ref}}{{$ref}}{{/modelLink}}{{else}}{{type}}{{/if}}{{/with}}{{/if}}</a></span>
 							</code>
 						</div>
 					</section>
-					{{/if}}
+					{{/with}}{{/if}}
 				</div>
 			</div>
 			{{/each}}
@@ -143,9 +136,9 @@
 {{#if models}}
 <section id="models">
 	{{#each models}}
-	<div id="model_{{id}}" class="model">
+	<div id="model_{{@key}}" class="model">
 		<div class="info">
-			<header class="name">{{id}}</header>
+			<header class="name">{{@key}}</header>
 			<p class="description">{{description}}</p>
 		</div>
 		<div class="header togglable">
@@ -168,8 +161,7 @@
 						<tr>
 							<td>
 								<div class="property"><span class="label label-primary">{{@key}}</span>{{#if required}} <small class="glyphicon glyphicon-certificate text-danger"></small>{{/if}}</div>
-								<div><strong>{{#if format}}{{format}}{{else}}{{type}}{{/if}}{{#with items}} of {{#if $ref}}{{#modelLink $ref}}{{$ref}}{{/modelLink}}{{else}}{{type}}{{/if}}{{/with}}</strong></div>
-								<div>{{paramType}}</div>
+								<div><strong>{{#if $ref}}{{#modelLink $ref}}{{$ref}}{{/modelLink}}{{else}}{{#if format}}{{format}}{{else}}{{type}}{{/if}}{{#with items}} of {{#if $ref}}{{#modelLink $ref}}{{$ref}}{{/modelLink}}{{else}}{{type}}{{/if}}{{/with}}{{/if}}</strong></div>
 							</td>
 							<td>{{description}}</td>
 						</tr>
