@@ -49,16 +49,23 @@ if (!argv.swaggerUrl) {
 	process.exit(-1);
 }
 
-var Generator = require(path.resolve(__dirname, '../lib/code-generators/' + argv.generator + '.js'));
+var Generator = require('../lib/code-generators/' + argv.generator + '.js');
 
+// Construct file writer relative to CWD if no absolute path is provided
 var fileWriter = new FileWriter(path.resolve(argv.dest));
-var generator = new Generator(argv, TemplateEngine, fileWriter);
 
-fileWriter.clean(generator.preventDeletion);
+loader(argv.swaggerUrl, function(specs, error) {
+	if (!error && specs) {
+		if (argv.debug) {
+			console.log(JSON.stringify(specs, undefined, 2));
+		}
 
-loader(argv.swaggerUrl, function(swagger, error) {
-	if (!error && swagger) {
-		generator.generate(swagger);
+		var generator = new Generator(specs, argv, TemplateEngine, fileWriter);
+
+		// Clean out any previously generated files
+		fileWriter.clean(generator.preventDeletion);
+
+		generator.generate();
 	} else if (error) {
 		console.log(error);
 		process.exit(-2);
