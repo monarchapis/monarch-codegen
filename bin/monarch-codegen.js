@@ -65,6 +65,7 @@ loader(argv.swaggerUrl, function(specs, error) {
 		// Clean out any previously generated files
 		fileWriter.clean(generator.preventDeletion);
 
+		generator.processInternalModel();
 		generator.generate();
 	} else if (error) {
 		console.log(error);
