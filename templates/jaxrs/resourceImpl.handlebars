@@ -1,0 +1,89 @@
+package {{package}}.impl;
+
+import java.util.*;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang3.Validate;
+
+import {{commonPackage}}.AbstractResource;
+import {{commonPackage}}.RequestProcessor;
+
+import {{package}}.{{className}};
+
+{{#each imports}}import {{this}};
+{{/each}}
+
+{{#each methods}}{{#if isQueryBuilder}}import {{../package}}.{{queryBuilder}};
+{{/if}}{{/each}}
+public class {{className}}Impl extends AbstractResource implements {{className}} {
+	public {{className}}Impl(String baseUrl) {
+		super(baseUrl, null);
+	}
+
+	public {{className}}Impl(String baseUrl, List<RequestProcessor> requestProcessors) {
+		super(baseUrl, requestProcessors);
+	}{{!
+	}}{{#each methods}}
+
+	{{#if isQueryBuilder}}public {{returnType}} {{operation}}({{queryBuilder}} query) {
+		WebTarget webTarget = getWebTarget(){{#each pathParts}}.path({{this}}){{/each}};
+		
+		{{#each queryParams}}{{!
+		}}{{#if isCollection}}{{!
+		}}webTarget = addCollectionParam(webTarget, "{{name}}", query.{{getter}}(), CollectionFormat.{{uppercase collectionFormat}});{{!
+		}}{{else}}{{!
+		}}webTarget = addParam(webTarget, "{{name}}", query.{{getter}}());{{!
+		}}{{/if}}
+		{{/each}}
+		Builder builder = webTarget.request({{#if hasReturn}}"{{accepts}}"{{/if}}){{!
+		}};
+        builder = requestProcessors(builder);
+
+        try {
+        	{{#if contentType}}{{!
+        }}{{#if hasReturn}}return builder.method("{{method}}", Entity.entity({{#if bodyParam}}{{bodyParam.name}}{{else}}form{{/if}}, "{{contentType}}"), {{parseAs}});{{else}}builder.method("{{method}}", Entity.entity({{#if bodyParam}}{{bodyParam.name}}{{else}}form{{/if}}, "{{contentType}}"));{{/if}}{{!
+        }}{{else}}{{!
+        	}}{{#if hasReturn}}return builder.method("{{method}}", {{parseAs}});{{else}}builder.method("{{method}}");{{/if}}{{!
+        }}{{/if}}
+        } catch (WebApplicationException wae) {
+			throw handleException(wae);
+		}
+	}{{else}}public {{returnType}} {{operation}}({{#each parameters}}{{#if @index}}, {{/if}}{{type}} {{variable}}{{/each}}) {
+		{{#if requiredParams}}{{#each requiredParams}}Validate.notNull({{variable}}, "{{variable}} is a required parameter.");
+		{{/each}}
+		{{/if}}{{#if formParams}}{{!
+		}}Form form = new Form();
+		{{#each formParams}}{{!
+		}}form.param("{{name}}", String.valueOf({{variable}}));
+		{{/each}}
+		{{/if}}Builder builder = getWebTarget() //
+			{{#each pathParts}}.path({{this}}) //
+			{{/each}}{{!
+			}}{{#each queryParams}}{{!
+				}}.queryParam("{{name}}", {{variable}})
+			{{/each}}{{!
+				}}.request({{#if hasReturn}}"{{accepts}}"{{/if}}){{!
+            }}{{#each headerParams}}{{!
+            	}}.header("{{name}}", {{variable}})
+        	{{/each}};
+        builder = requestProcessors(builder);
+
+        try {
+        	{{#if contentType}}{{!
+        }}{{#if hasReturn}}return builder.method("{{method}}", Entity.entity({{#if bodyParam}}{{bodyParam.name}}{{else}}form{{/if}}, "{{contentType}}"), {{parseAs}});{{else}}builder.method("{{method}}", Entity.entity({{#if bodyParam}}{{bodyParam.name}}{{else}}form{{/if}}, "{{contentType}}"));{{/if}}{{!
+        }}{{else}}{{!
+        	}}{{#if hasReturn}}return builder.method("{{method}}", {{parseAs}});{{else}}builder.method("{{method}}");{{/if}}{{!
+        }}{{/if}}
+        } catch (WebApplicationException wae) {
+			throw handleException(wae);
+		}
+	}{{/if}}{{/each}}
+}

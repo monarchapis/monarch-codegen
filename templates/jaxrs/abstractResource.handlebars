@@ -1,0 +1,133 @@
+package {{package}};
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+
+import {{exceptionPackage}}.ApiError;
+import {{exceptionPackage}}.ApiErrorException;
+
+public abstract class AbstractResource {
+	private static final Function<Object, String> TO_STRINGS = new Function<Object, String>() {
+		@Override
+		public String apply(Object value) {
+			return String.valueOf(value);
+		}
+	};
+
+	private String baseUrl;
+	private List<RequestProcessor> requestProcessors;
+
+	public AbstractResource(String baseUrl, List<RequestProcessor> requestProcessors) {
+		this.baseUrl = baseUrl;
+		this.requestProcessors = requestProcessors;
+	}
+
+	public void setRequestProcessors(List<RequestProcessor> requestProcessors) {
+		this.requestProcessors = requestProcessors;
+	}
+
+	public void setRequestProcessors(RequestProcessor... requestProcessors) {
+		this.requestProcessors = Arrays.asList(requestProcessors);
+	}
+
+	protected WebTarget addParam(WebTarget webTarget, String name, Object value) {
+		WebTarget ret = webTarget;
+
+		if (value != null) {
+			ret = webTarget.queryParam(name, value);
+		}
+
+		return ret;
+	}
+
+	protected WebTarget addCollectionParam(WebTarget webTarget, String name, Collection<?> values,
+			CollectionFormat format) {
+		WebTarget ret = webTarget;
+
+		if (values != null && !values.isEmpty()) {
+			char delimiter = format.getDelimiter();
+
+			if (delimiter == (char) 0) {
+				Object[] valueArray = new Object[values.size()];
+				ret = webTarget.queryParam(name, values.toArray(valueArray));
+			} else {
+				String value = StringUtils.join(Collections2.transform(values, TO_STRINGS), delimiter);
+				ret = webTarget.queryParam(name, value);
+			}
+		}
+
+		return ret;
+	}
+
+	protected Builder requestProcessors(Builder builder) {
+		if (requestProcessors != null) {
+			for (RequestProcessor processor : requestProcessors) {
+				builder = processor.process(builder);
+			}
+		}
+
+		return builder;
+	}
+
+	protected RuntimeException handleException(WebApplicationException exception) {
+		return handleException(exception, null);
+	}
+
+	protected RuntimeException handleException(WebApplicationException exception,
+			Map<Integer, Class<? extends ApiError>> modelMap) {
+		Response response = exception.getResponse();
+		int status = response.getStatus();
+
+		try {
+			Class<? extends ApiError> errorModelClass = ApiError.class;
+
+			if (modelMap != null && modelMap.containsKey(status)) {
+				errorModelClass = modelMap.get(status);
+			}
+
+			ApiError error = response.readEntity(errorModelClass);
+
+			return new ApiErrorException(error, exception);
+		} catch (ProcessingException pe) {
+			return exception;
+		}
+	}
+
+	protected WebTarget getWebTarget() {
+		javax.ws.rs.client.Client client = ClientBuilder.newClient();
+
+		client.register(JacksonJsonProvider.class);
+		client.register(ObjectMapperProvider.class);
+
+		return client.target(baseUrl);
+	}
+
+	public enum CollectionFormat {
+		CSV(','), SSV(' '), TSV('\t'), PIPES('|'), MULTI((char) 0);
+
+		private char delimiter;
+
+		CollectionFormat(char delimiter) {
+			this.delimiter = delimiter;
+		}
+
+		char getDelimiter() {
+			return delimiter;
+		}
+	}
+}

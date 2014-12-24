@@ -1,0 +1,50 @@
+package {{package}};
+
+import java.util.*;
+
+import com.google.common.collect.Sets;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+public class {{queryBuilder}} {
+{{#each parameters}}{{#if description}}	/** {{description}} */
+{{/if}}{{#each fieldAnnotations}}	{{this}}
+{{/each}}	private {{type}} {{property}};
+
+{{/each}}	private {{queryBuilder}}({{queryBuilder}}.Builder builder) {
+{{#each parameters}}		this.{{property}} = builder.{{property}};
+{{/each}}{{!
+}}	}
+
+{{#each parameters}}	public {{type}} {{getter}}() {
+		return {{property}};
+	}
+
+{{/each}}	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+	}
+
+	public static class Builder {
+{{#each parameters}}		private {{type}} {{property}};
+{{/each}}{{#each parameters}}
+		{{#if isCollection}}public Builder {{property}}({{type}} {{property}}) {
+			this.{{property}} = {{property}};
+			return this;
+		}
+
+		public Builder {{property}}({{itemType}}... {{property}}) {
+			this.{{property}} = {{#if uniqueItems}}Sets.newHashSet{{else}}Arrays.asList{{/if}}({{property}});
+			return this;
+		}{{else}}public Builder {{property}}({{type}} {{property}}) {
+			this.{{property}} = {{property}};
+			return this;
+		}{{/if}}
+{{/each}}{{!
+}}
+		public {{queryBuilder}} build() {
+			return new {{queryBuilder}}(this);
+		}
+	}
+}

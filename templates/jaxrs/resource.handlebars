@@ -1,0 +1,11 @@
+package {{package}};
+
+import java.util.*;
+
+{{#each imports}}import {{this}};
+{{/each}}
+public interface {{className}} {
+{{#each methods}}
+	{{#if isQueryBuilder}}public {{returnType}} {{operation}}({{queryBuilder}} query);
+	{{else}}public {{returnType}} {{operation}}({{#each parameters}}{{#if @index}}, {{/if}}{{type}} {{variable}}{{/each}});{{/if}}{{/each}}
+}

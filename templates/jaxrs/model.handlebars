@@ -1,0 +1,29 @@
+package {{package}};
+
+import java.util.*;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+{{#imports}}import {{this}};
+{{/imports}}
+public class {{className}}{{#if typeParameters}}<{{#typeParameters}}{{this}}{{/typeParameters}}>{{/if}}{{#if mapValue}} extends HashMap<String, {{mapValue}}>{{/if}} {
+{{#if mapValue}}	private static final long serialVersionUID = 1L;
+{{/if}}
+	{{#each properties}}{{#if description}}/** {{description}} */
+	{{/if}}{{#each fieldAnnotations}}{{this}}
+	{{/each}}private {{type}} {{name}}{{#if defaultValue}} = {{defaultValue}}{{/if}};
+
+	{{/each}}{{#each properties}}public {{type}} {{getter}}() {
+		return {{name}};
+	}
+
+	public void {{setter}}({{type}} {{name}}) {
+		this.{{name}} = {{name}};
+	}
+	
+	{{/each}}@Override
+	public String toString()  {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+	}
+}

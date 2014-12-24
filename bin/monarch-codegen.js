@@ -16,14 +16,9 @@ if (typeof String.prototype.endsWith != 'function') {
 }
 
 var _ = require('underscore');
-var $ = require('jquery-deferred');
 var fs = require('fs');
 var path = require('path');
-var url = require('url');
-var md = require('html-md');
-var jsyaml = require('js-yaml');
 var argv = require('optimist').argv;
-var request = require('request');
 
 var FileWriter = require(path.resolve(__dirname, '../lib/file-writer.js'));
 var TemplateEngine = require(path.resolve(__dirname, '../lib/template-engine.js'));

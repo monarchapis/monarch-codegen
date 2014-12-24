@@ -1,0 +1,56 @@
+package {{package}}.impl;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+import {{commonPackage}}.RequestProcessor;
+
+import {{package}}.{{className}};
+
+{{#each resourceClass}}import {{../package}}.{{this}};
+{{/each}}
+public class {{className}}Impl implements {{className}} {
+	private String baseUrl;
+	private List<RequestProcessor> requestProcessors;
+
+	public {{className}}Impl() {
+	}
+
+	public {{className}}Impl(String baseUrl) {
+		setBaseUrl(baseUrl);
+	}
+
+	public {{className}}Impl(String baseUrl, List<RequestProcessor> requestProcessors) {
+		setBaseUrl(baseUrl);
+		this.requestProcessors = requestProcessors;
+	}
+
+	public {{className}}Impl(String baseUrl, RequestProcessor... requestProcessors) {
+		setBaseUrl(baseUrl);
+		this.requestProcessors = Arrays.asList(requestProcessors);
+	}
+
+	public void setBaseUrl(String baseUrl) {
+		baseUrl = StringUtils.removeEnd(baseUrl, "/");
+
+		if (StringUtils.isBlank(baseUrl)) {
+			throw new IllegalArgumentException("baseUrl must not be blank or null");
+		}
+
+		this.baseUrl = baseUrl;
+	}
+
+	public void setRequestProcessors(List<RequestProcessor> requestProcessors) {
+		this.requestProcessors = requestProcessors;
+	}
+
+	public void setRequestProcessors(RequestProcessor... requestProcessors) {
+		this.requestProcessors = Arrays.asList(requestProcessors);
+	}{{#each resourceClass}}
+	
+	public {{this}} get{{this}}() {
+		return new {{this}}Impl(baseUrl, requestProcessors);
+	}{{/each}}
+}
