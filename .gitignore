@@ -2,4 +2,5 @@ clients
 node_modules
 npm-debug.log
 *-api.json
+*-client.json
 *-html.json
