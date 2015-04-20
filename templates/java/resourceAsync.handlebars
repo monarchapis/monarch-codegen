@@ -3,40 +3,15 @@ package {{package}};
 import java.util.*;
 import java.util.concurrent.Future;
 
-import com.monarchapis.client.resource.AbstractResource;
-import com.monarchapis.client.resource.TypeReference;
-import com.monarchapis.client.rest.AsyncFuture;
-import com.monarchapis.client.rest.Callback;
-import com.monarchapis.client.rest.RequestProcessor;
-import com.monarchapis.client.rest.RESTAsyncClient;
-import com.monarchapis.client.rest.RESTClientFactory;
-import com.monarchapis.client.rest.VoidCallback;
+import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.Response;
 
-{{#each imports}}import {{{this}}};
+{{#each imports}}import {{this}};
 {{/each}}
-{{#each asyncImports}}import {{{this}}};
+{{#each asyncImports}}import {{this}};
 {{/each}}
-public class {{{className}}} extends AbstractResource {
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory) {
-		super(baseUrl, clientFactory);
-	}
-
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
-		super(baseUrl, clientFactory, requestProcessors);
-	}{{#each methods}}
-	
-	public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}void{{/if}} {{{operation}}}({{#each parameters}}{{{type}}} {{{name}}}, {{/each}}{{#if hasReturn}}Callback<{{{returnType}}}>{{else}}VoidCallback{{/if}} callback) {
-		{{#each parameters}}{{#if required}}require({{{name}}}, "{{{name}}} is a required parameter.");
-		{{/if}}{{/each}}
-		final RESTAsyncClient client = newAsyncClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
-				.accepts("{{{accepts}}}"){{/if}}{{#if contentType}} //
-				.contentType("{{{contentType}}}"){{/if}}{{#if parameters}} //{{#each parameters}}{{#if @index}} //{{/if}}
-				.{{{clientMethod}}}({{#if named}}"{{{name}}}", {{/if}}{{#if convertMethod}}{{{convertMethod}}}({{/if}}{{{name}}}{{#if convertMethod}}){{/if}}){{/each}}{{/if}};
-
-		signRequest(client);
-		{{#if hasReturn}}AsyncFuture<{{{returnType}}}> future = client.future(callback);
-		client.send(callbackAdapter(future, {{{parseAs}}}));
-		
-		return future;{{else}}client.send(callback);{{/if}}
-	}{{/each}}
+public interface {{className}} {
+{{#each methods}}	
+	{{#if isQueryBuilder}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}void{{/if}} {{operation}}({{queryBuilder}} query, {{#if hasReturn}}InvocationCallback<{{returnType}}>{{else}}InvocationCallback<Response>{{/if}} callback);
+	{{else}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}void{{/if}} {{operation}}({{#each parameters}}{{type}} {{variable}}, {{/each}}{{#if hasReturn}}InvocationCallback<{{returnType}}>{{else}}InvocationCallback<Response>{{/if}} callback);{{/if}}{{/each}}
 }

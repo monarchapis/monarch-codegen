@@ -1,38 +1,9 @@
 package {{package}};
 
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.monarchapis.client.rest.RequestProcessor;
-import com.monarchapis.client.rest.RESTClientFactory;
-
-public class {{{className}}} {
-	private String baseUrl;
-	private RESTClientFactory clientFactory;
-	private List<RequestProcessor> requestProcessors;
-
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory) {
-		this(baseUrl, clientFactory, null);
-	}
-
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
-		baseUrl = StringUtils.removeEnd(baseUrl, "/");
-
-		if (StringUtils.isBlank(baseUrl)) {
-			throw new IllegalArgumentException("baseUrl must not be blank or null");
-		}
-
-		if (clientFactory == null) {
-			throw new IllegalArgumentException("clientFactory must not be null");
-		}
-
-		this.baseUrl = baseUrl;
-		this.clientFactory = clientFactory;
-		this.requestProcessors = requestProcessors;
-	}{{#each resourceClass}}
-	
-	public {{{this}}} get{{{this}}}() {
-		return new {{{this}}}(baseUrl, clientFactory, requestProcessors);
-	}{{/each}}
+{{#each resourceClass}}import {{../package}}.{{this}};
+{{/each}}
+public interface {{className}} {
+{{#each resourceClass}}	
+	{{this}} get{{this}}();
+	{{/each}}
 }

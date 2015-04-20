@@ -1,9 +1,0 @@
-package {{package}};
-
-{{#each resourceClass}}import {{../package}}.{{this}};
-{{/each}}
-public interface {{className}} {
-{{#each resourceClass}}	
-	{{this}} get{{this}}();
-	{{/each}}
-}
