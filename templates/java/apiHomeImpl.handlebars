@@ -1,24 +1,28 @@
-package {{package}};
+package {{package}}.impl;
 
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.collect.Lists;
 import com.monarchapis.client.rest.RequestProcessor;
-import com.monarchapis.client.rest.RESTClientFactory;
+import com.monarchapis.client.rest.RestClientFactory;
 
 import {{package}}.{{className}};
 
-public class {{{className}}} {
+{{#each resourceClass}}import {{../package}}.{{this}};
+{{/each}}
+
+public class {{{className}}}Impl implements {{{className}}} {
 	private String baseUrl;
-	private RESTClientFactory clientFactory;
+	private RestClientFactory clientFactory;
 	private List<RequestProcessor> requestProcessors;
 
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory) {
-		this(baseUrl, clientFactory, null);
+	public {{{className}}}Impl(String baseUrl, RestClientFactory clientFactory, RequestProcessor... requestProcessors) {
+		this(baseUrl, clientFactory, Lists.newArrayList(requestProcessors));
 	}
 
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
+	public {{{className}}}Impl(String baseUrl, RestClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
 		baseUrl = StringUtils.removeEnd(baseUrl, "/");
 
 		if (StringUtils.isBlank(baseUrl)) {
@@ -35,6 +39,6 @@ public class {{{className}}} {
 	}{{#each resourceClass}}
 	
 	public {{{this}}} get{{{this}}}() {
-		return new {{{this}}}(baseUrl, clientFactory, requestProcessors);
+		return new {{{this}}}Impl(baseUrl, clientFactory, requestProcessors);
 	}{{/each}}
 }

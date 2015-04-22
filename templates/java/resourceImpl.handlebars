@@ -2,36 +2,62 @@ package {{package}}.impl;
 
 import java.util.*;
 
+import com.google.common.collect.Lists;
+import com.monarchapis.api.exception.ApiError;
+import com.monarchapis.api.exception.ApiErrorException;
 import com.monarchapis.client.resource.AbstractResource;
 import com.monarchapis.client.resource.TypeReference;
+import com.monarchapis.client.rest.BaseClient.CollectionFormat;
 import com.monarchapis.client.rest.RequestProcessor;
-import com.monarchapis.client.rest.RESTClientFactory;
-import com.monarchapis.client.rest.RESTClient;
-import com.monarchapis.client.rest.RESTResponse;
+import com.monarchapis.client.rest.RestClientFactory;
+import com.monarchapis.client.rest.RestClient;
+import com.monarchapis.client.rest.RestResponse;
 
 import {{package}}.{{className}};
 
 {{#each imports}}import {{{this}}};
 {{/each}}
-public class {{{className}}} extends AbstractResource {
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory) {
-		super(baseUrl, clientFactory);
+
+{{#each methods}}{{#if isQueryBuilder}}import {{../package}}.{{queryBuilder}};
+{{/if}}{{/each}}
+public class {{{className}}}Impl extends AbstractResource implements {{{className}}} {
+	public {{{className}}}Impl(String baseUrl, RestClientFactory clientFactory, RequestProcessor... requestProcessors) {
+		super(baseUrl, clientFactory, Lists.newArrayList(requestProcessors));
 	}
 
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
+	public {{{className}}}Impl(String baseUrl, RestClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
 		super(baseUrl, clientFactory, requestProcessors);
 	}{{#each methods}}
 	
-	public {{{returnType}}} {{{operation}}}({{#each parameters}}{{#if @index}}, {{/if}}{{{type}}} {{{name}}}{{/each}}) {
+	{{#if isQueryBuilder}}public {{returnType}} {{operation}}({{queryBuilder}} query) {
+		final RestClient client = newClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
+				.accepts("{{{accepts}}}"){{/if}}{{#if contentType}} //
+				.contentType("{{{contentType}}}") {{/if}}{{#each queryParams}}{{#if isCollection}} //
+				.addQueryCollection("{{name}}", query.{{getter}}(), CollectionFormat.{{uppercase collectionFormat}}){{!
+				}}{{else}} //
+				.addQuery("{{name}}", query.{{getter}}()){{!
+				}}{{/if}}{{/each}};
+
+        signRequest(client);
+		{{#if hasReturn}}final RestResponse response = client.send();
+		return parseAs(response, {{{parseAs}}});{{else}}client.send();{{/if}}
+	}{{else}}public {{{returnType}}} {{{operation}}}({{#each parameters}}{{#if @index}}, {{/if}}{{{type}}} {{{name}}}{{/each}}) {
 		{{#each parameters}}{{#if required}}require({{{name}}}, "{{{name}}} is a required parameter.");
 		{{/if}}{{/each}}
-		final RESTClient client = newClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
+		final RestClient client = newClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
 				.accepts("{{{accepts}}}"){{/if}}{{#if contentType}} //
 				.contentType("{{{contentType}}}"){{/if}}{{#if parameters}} //{{#each parameters}}{{#if @index}} //{{/if}}
 				.{{{clientMethod}}}({{#if named}}"{{{name}}}", {{/if}}{{#if convertMethod}}{{{convertMethod}}}({{/if}}{{{name}}}{{#if convertMethod}}){{/if}}){{/each}}{{/if}};
 
 		signRequest(client);
-		{{#if hasReturn}}final RESTResponse response = client.send();
+		{{#if hasReturn}}final RestResponse response = client.send();
 		return parseAs(response, {{{parseAs}}});{{else}}client.send();{{/if}}
-	}{{/each}}
+	}{{/if}}{{/each}}
+
+	@Override
+	protected void throwErrorException(RestResponse response) {
+		ApiError error = parseAs(response.getResponseBody(), ApiError.class);
+
+		throw new ApiErrorException(error);
+	}
 }

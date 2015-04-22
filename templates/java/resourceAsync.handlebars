@@ -3,8 +3,8 @@ package {{package}};
 import java.util.*;
 import java.util.concurrent.Future;
 
-import javax.ws.rs.client.InvocationCallback;
-import javax.ws.rs.core.Response;
+import com.monarchapis.client.rest.Callback;
+import com.monarchapis.client.rest.VoidCallback;
 
 {{#each imports}}import {{this}};
 {{/each}}
@@ -12,6 +12,6 @@ import javax.ws.rs.core.Response;
 {{/each}}
 public interface {{className}} {
 {{#each methods}}	
-	{{#if isQueryBuilder}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}void{{/if}} {{operation}}({{queryBuilder}} query, {{#if hasReturn}}InvocationCallback<{{returnType}}>{{else}}InvocationCallback<Response>{{/if}} callback);
-	{{else}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}void{{/if}} {{operation}}({{#each parameters}}{{type}} {{variable}}, {{/each}}{{#if hasReturn}}InvocationCallback<{{returnType}}>{{else}}InvocationCallback<Response>{{/if}} callback);{{/if}}{{/each}}
+	{{#if isQueryBuilder}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}void{{/if}} {{operation}}({{queryBuilder}} query, {{#if hasReturn}}Callback<{{returnType}}>{{else}}VoidCallback{{/if}} callback);
+	{{else}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}void{{/if}} {{operation}}({{#each parameters}}{{type}} {{variable}}, {{/each}}{{#if hasReturn}}Callback<{{returnType}}>{{else}}VoidCallback{{/if}} callback);{{/if}}{{/each}}
 }

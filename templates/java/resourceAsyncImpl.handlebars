@@ -3,13 +3,18 @@ package {{package}}.impl;
 import java.util.*;
 import java.util.concurrent.Future;
 
+import com.google.common.collect.Lists;
+import com.monarchapis.api.exception.ApiError;
+import com.monarchapis.api.exception.ApiErrorException;
 import com.monarchapis.client.resource.AbstractResource;
 import com.monarchapis.client.resource.TypeReference;
 import com.monarchapis.client.rest.AsyncFuture;
+import com.monarchapis.client.rest.BaseClient.CollectionFormat;
 import com.monarchapis.client.rest.Callback;
 import com.monarchapis.client.rest.RequestProcessor;
-import com.monarchapis.client.rest.RESTAsyncClient;
-import com.monarchapis.client.rest.RESTClientFactory;
+import com.monarchapis.client.rest.RestAsyncClient;
+import com.monarchapis.client.rest.RestClientFactory;
+import com.monarchapis.client.rest.RestResponse;
 import com.monarchapis.client.rest.VoidCallback;
 
 import {{package}}.{{className}};
@@ -18,19 +23,35 @@ import {{package}}.{{className}};
 {{/each}}
 {{#each asyncImports}}import {{{this}}};
 {{/each}}
-public class {{{className}}} extends AbstractResource {
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory) {
-		super(baseUrl, clientFactory);
+{{#each methods}}{{#if isQueryBuilder}}import {{../package}}.{{queryBuilder}};
+{{/if}}{{/each}}
+public class {{{className}}}Impl extends AbstractResource implements {{{className}}} {
+	public {{{className}}}Impl(String baseUrl, RestClientFactory clientFactory, RequestProcessor... requestProcessors) {
+		super(baseUrl, clientFactory, Lists.newArrayList(requestProcessors));
 	}
 
-	public {{{className}}}(String baseUrl, RESTClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
+	public {{{className}}}Impl(String baseUrl, RestClientFactory clientFactory, List<RequestProcessor> requestProcessors) {
 		super(baseUrl, clientFactory, requestProcessors);
 	}{{#each methods}}
 	
-	public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}void{{/if}} {{{operation}}}({{#each parameters}}{{{type}}} {{{name}}}, {{/each}}{{#if hasReturn}}Callback<{{{returnType}}}>{{else}}VoidCallback{{/if}} callback) {
+	{{#if isQueryBuilder}}public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}void{{/if}} {{operation}}({{queryBuilder}} query, {{#if hasReturn}}Callback<{{{returnType}}}>{{else}}VoidCallback{{/if}} callback) {
+		final RestAsyncClient client = newAsyncClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
+				.accepts("{{{accepts}}}"){{/if}}{{#if contentType}} //
+				.contentType("{{{contentType}}}") {{/if}}{{#each queryParams}}{{#if isCollection}} //
+				.addQueryCollection("{{name}}", query.{{getter}}(), CollectionFormat.{{uppercase collectionFormat}}){{!
+				}}{{else}} //
+				.addQuery("{{name}}", query.{{getter}}()){{!
+				}}{{/if}}{{/each}};
+
+        signRequest(client);
+		{{#if hasReturn}}AsyncFuture<{{{returnType}}}> future = client.future(callback);
+		client.send(callbackAdapter(future, {{{parseAs}}}));
+		
+		return future;{{else}}client.send(callback);{{/if}}
+	}{{else}}public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}void{{/if}} {{{operation}}}({{#each parameters}}{{{type}}} {{{name}}}, {{/each}}{{#if hasReturn}}Callback<{{{returnType}}}>{{else}}VoidCallback{{/if}} callback) {
 		{{#each parameters}}{{#if required}}require({{{name}}}, "{{{name}}} is a required parameter.");
 		{{/if}}{{/each}}
-		final RESTAsyncClient client = newAsyncClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
+		final RestAsyncClient client = newAsyncClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
 				.accepts("{{{accepts}}}"){{/if}}{{#if contentType}} //
 				.contentType("{{{contentType}}}"){{/if}}{{#if parameters}} //{{#each parameters}}{{#if @index}} //{{/if}}
 				.{{{clientMethod}}}({{#if named}}"{{{name}}}", {{/if}}{{#if convertMethod}}{{{convertMethod}}}({{/if}}{{{name}}}{{#if convertMethod}}){{/if}}){{/each}}{{/if}};
@@ -40,5 +61,12 @@ public class {{{className}}} extends AbstractResource {
 		client.send(callbackAdapter(future, {{{parseAs}}}));
 		
 		return future;{{else}}client.send(callback);{{/if}}
-	}{{/each}}
+	}{{/if}}{{/each}}
+
+	@Override
+	protected void throwErrorException(RestResponse response) {
+		ApiError error = parseAs(response.getResponseBody(), ApiError.class);
+
+		throw new ApiErrorException(error);
+	}
 }

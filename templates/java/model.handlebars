@@ -22,8 +22,8 @@ public class {{className}}{{#if typeParameters}}<{{#typeParameters}}{{this}}{{/t
 		this.{{name}} = {{name}};
 	}
 	
-	{{/each}}@Override
+	{{/each}}{{#if mapValue}}{{else}}@Override
 	public String toString()  {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
-	}
+	}{{/if}}
 }
