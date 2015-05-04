@@ -12,7 +12,7 @@ public class {{className}}{{#if typeParameters}}<{{#typeParameters}}{{this}}{{/t
 {{/if}}
 	{{#each properties}}{{#if description}}/** {{description}} */
 	{{/if}}{{#each fieldAnnotations}}{{this}}
-	{{/each}}private {{type}} {{name}}{{#if defaultValue}} = {{defaultValue}}{{/if}};
+	{{/each}}private {{type}} {{name}}{{#if defaultValue}} = {{defaultValue}}{{else}}{{#if required}}{{else}} = Optional.absent(){{/if}}{{/if}};
 
 	{{/each}}{{#each properties}}public {{type}} {{getter}}() {
 		return {{name}};
