@@ -15,7 +15,6 @@ import com.monarchapis.client.rest.RequestProcessor;
 import com.monarchapis.client.rest.RestAsyncClient;
 import com.monarchapis.client.rest.RestClientFactory;
 import com.monarchapis.client.rest.RestResponse;
-import com.monarchapis.client.rest.VoidCallback;
 
 import {{package}}.{{className}};
 
@@ -34,7 +33,7 @@ public class {{{className}}}Impl extends AbstractResource implements {{{classNam
 		super(baseUrl, clientFactory, requestProcessors);
 	}{{#each methods}}
 	
-	{{#if isQueryBuilder}}public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}void{{/if}} {{operation}}({{queryBuilder}} query, {{#if hasReturn}}Callback<{{{returnType}}}>{{else}}VoidCallback{{/if}} callback) {
+	{{#if isQueryBuilder}}public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}Future<Void>{{/if}} {{operation}}({{queryBuilder}} query, {{#if hasReturn}}Callback<{{{returnType}}}>{{else}}Callback<Void>{{/if}} callback) {
 		final RestAsyncClient client = newAsyncClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
 				.accepts("{{{accepts}}}"){{/if}}{{#if contentType}} //
 				.contentType("{{{contentType}}}") {{/if}}{{#each queryParams}}{{#if isCollection}} //
@@ -46,9 +45,11 @@ public class {{{className}}}Impl extends AbstractResource implements {{{classNam
         signRequest(client);
 		{{#if hasReturn}}AsyncFuture<{{{returnType}}}> future = client.future(callback);
 		client.send(callbackAdapter(future, {{{parseAs}}}));
-		
-		return future;{{else}}client.send(callback);{{/if}}
-	}{{else}}public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}void{{/if}} {{{operation}}}({{#each parameters}}{{{type}}} {{{name}}}, {{/each}}{{#if hasReturn}}Callback<{{{returnType}}}>{{else}}VoidCallback{{/if}} callback) {
+		{{else}}AsyncFuture<Void> future = client.future(callback);
+		client.send(callbackAdapter(future, Void.class));
+		{{/if}}
+		return future;
+	}{{else}}public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}void{{/if}} {{{operation}}}({{#each parameters}}{{{type}}} {{{name}}}, {{/each}}{{#if hasReturn}}Callback<{{{returnType}}}>{{else}}Callback<Void>{{/if}} callback) {
 		{{#each parameters}}{{#if required}}require({{{name}}}, "{{{name}}} is a required parameter.");
 		{{/if}}{{/each}}
 		final RestAsyncClient client = newAsyncClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
@@ -59,8 +60,10 @@ public class {{{className}}}Impl extends AbstractResource implements {{{classNam
 		signRequest(client);
 		{{#if hasReturn}}AsyncFuture<{{{returnType}}}> future = client.future(callback);
 		client.send(callbackAdapter(future, {{{parseAs}}}));
-		
-		return future;{{else}}client.send(callback);{{/if}}
+		{{else}}AsyncFuture<Void> future = client.future(callback);
+		client.send(callbackAdapter(future, Void.class));
+		{{/if}}
+		return future;
 	}{{/if}}{{/each}}
 
 	@Override

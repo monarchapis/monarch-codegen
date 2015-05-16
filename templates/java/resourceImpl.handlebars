@@ -50,8 +50,8 @@ public class {{{className}}}Impl extends AbstractResource implements {{{classNam
 				.{{{clientMethod}}}({{#if named}}"{{{name}}}", {{/if}}{{#if convertMethod}}{{{convertMethod}}}({{/if}}{{{name}}}{{#if convertMethod}}){{/if}}){{/each}}{{/if}};
 
 		signRequest(client);
-		final RestResponse response = client.send();
-		{{#if hasReturn}}return parseAs(response, {{{parseAs}}});{{else}}client.send();{{else}}checkStatusCode(response);{{/if}}
+		{{#if hasReturn}}final RestResponse response = client.send();
+		return parseAs(response, {{{parseAs}}});{{else}}client.send();{{/if}}
 	}{{/if}}{{/each}}
 
 	@Override
