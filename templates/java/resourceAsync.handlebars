@@ -11,6 +11,6 @@ import com.monarchapis.client.rest.Callback;
 {{/each}}
 public interface {{className}} {
 {{#each methods}}	
-	{{#if isQueryBuilder}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}void{{/if}} {{operation}}({{queryBuilder}} query, {{#if hasReturn}}Callback<{{returnType}}>{{else}}Callback<Void>{{/if}} callback);
-	{{else}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}void{{/if}} {{operation}}({{#each parameters}}{{type}} {{variable}}, {{/each}}{{#if hasReturn}}Callback<{{returnType}}>{{else}}Callback<Void>{{/if}} callback);{{/if}}{{/each}}
+	{{#if isQueryBuilder}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}Future<Void>{{/if}} {{operation}}({{queryBuilder}} query, {{#if hasReturn}}Callback<{{returnType}}>{{else}}Callback<Void>{{/if}} callback);
+	{{else}}public {{#if hasReturn}}Future<{{returnType}}>{{else}}Future<Void>{{/if}} {{operation}}({{#each parameters}}{{type}} {{variable}}, {{/each}}{{#if hasReturn}}Callback<{{returnType}}>{{else}}Callback<Void>{{/if}} callback);{{/if}}{{/each}}
 }

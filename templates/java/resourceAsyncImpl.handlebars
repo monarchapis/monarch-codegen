@@ -49,7 +49,7 @@ public class {{{className}}}Impl extends AbstractResource implements {{{classNam
 		client.send(callbackAdapter(future, Void.class));
 		{{/if}}
 		return future;
-	}{{else}}public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}void{{/if}} {{{operation}}}({{#each parameters}}{{{type}}} {{{name}}}, {{/each}}{{#if hasReturn}}Callback<{{{returnType}}}>{{else}}Callback<Void>{{/if}} callback) {
+	}{{else}}public {{#if hasReturn}}Future<{{{returnType}}}>{{else}}Future<Void>{{/if}} {{{operation}}}({{#each parameters}}{{{type}}} {{{name}}}, {{/each}}{{#if hasReturn}}Callback<{{{returnType}}}>{{else}}Callback<Void>{{/if}} callback) {
 		{{#each parameters}}{{#if required}}require({{{name}}}, "{{{name}}} is a required parameter.");
 		{{/if}}{{/each}}
 		final RestAsyncClient client = newAsyncClient("{{{method}}}", "{{{path}}}"){{#if accepts}} //
